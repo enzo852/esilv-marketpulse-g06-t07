@@ -1,0 +1,24 @@
+@BionLeong ➜ /workspaces/esilv-marketpulse-g06-t07 (main) $ git checkout -b bion-leong
+Switched to a new branch 'bion-leong'
+@BionLeong ➜ /workspaces/esilv-marketpulse-g06-t07 (bion-leong) $ git branch
+* bion-leong
+  main
+@BionLeong ➜ /workspaces/esilv-marketpulse-g06-t07 (bion-leong) $ pwd
+/workspaces/esilv-marketpulse-g06-t07
+@BionLeong ➜ /workspaces/esilv-marketpulse-g06-t07 (bion-leong) $ ls
+CONTRIBUTING.md  README.md  TEAM_TEMPLATE.md  config  data  docs  evidence  requirements.txt  src
+@BionLeong ➜ /workspaces/esilv-marketpulse-g06-t07 (bion-leong) $ ls -la
+total 60
+drwxrwxrwx+ 8 codespace root  4096 Oct 16 07:26 .
+drwxr-xrwx+ 5 codespace root  4096 Oct 16 07:26 ..
+drwxrwxrwx+ 8 codespace root  4096 Oct 16 08:42 .git
+-rw-rw-rw-  1 codespace root   178 Oct 16 07:26 .gitignore
+-rw-rw-rw-  1 codespace root  2943 Oct 16 07:26 CONTRIBUTING.md
+-rw-rw-rw-  1 codespace root 10270 Oct 16 07:26 README.md
+-rw-rw-rw-  1 codespace root  1446 Oct 16 07:26 TEAM_TEMPLATE.md
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 07:26 config
+drwxrwxrwx+ 3 codespace root  4096 Oct 16 07:26 data
+drwxrwxrwx+ 4 codespace root  4096 Oct 16 07:26 docs
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 08:50 evidence
+-rw-rw-rw-  1 codespace root   133 Oct 16 07:26 requirements.txt
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 07:26 src
