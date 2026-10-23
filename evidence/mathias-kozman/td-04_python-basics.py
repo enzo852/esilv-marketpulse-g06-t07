@@ -2,45 +2,10 @@ from pathlib import Path
 import csv
 import json
 
-CURRENT_DIR = Path.cwd()
-PROJECT_ROOT = CURRENT_DIR if (CURRENT_DIR / "data").exists() else CURRENT_DIR.parent
-DATA_DIR = PROJECT_ROOT / "data" / "sample"
-
-def load_instruments(filepath=DATA_DIR / "instruments.json"):
-    """Load and parse JSON metadata file into a Python dictionary."""
-    with open(filepath, mode="r", encoding="utf-8") as file:
-        return json.load(file)
-
-instruments = load_instruments()
-
-def load_prices(filepath=DATA_DIR / "prices.csv"):
-    """Load market observations from CSV into a list of dictionaries."""
-    with open(filepath, mode="r", encoding="utf-8") as file:
-        return list(csv.DictReader(file))
-
-prices = load_prices()
-
-def get_first_close(prices):
-    """
-    Return the initial close price of a price series as a float.
-    """
-    if not prices:
-        return 0.0
-    return float(prices[0]["close"])
+from module import load_instruments, load_prices, get_first_close, get_last_close, filter_prices
 
 
-def get_last_close(prices):
-    """
-    Return the final close price of a price series as a float.
-    """
-    if not prices:
-        return 0.0
-    return float(prices[-1]["close"])
 
-
-def filter_prices(prices, ticker):
-    """Filter observation dictionaries matching a specific ticker."""
-    return [row for row in prices if row["ticker"] == ticker]
 
 def display_market_summary(asset, prices, show_currency=True):
     """
