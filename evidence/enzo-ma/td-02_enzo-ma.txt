@@ -1,0 +1,37 @@
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (main) $ git branch
+* main
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (main) $ git checkout -b enzo-ma
+Switched to a new branch 'enzo-ma'
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ git branch
+* enzo-ma
+  main
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ pwd
+/workspaces/esilv-marketpulse-g06-t07
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ ls
+CONTRIBUTING.md  README.md  TEAM.md  config  data  docs  evidence  requirements.txt  src
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ ls -la
+total 60
+drwxrwxrwx+ 8 codespace root  4096 Oct 16 07:41 .
+drwxr-xrwx+ 5 codespace root  4096 Oct 16 07:24 ..
+drwxrwxrwx+ 8 codespace root  4096 Oct 16 08:42 .git
+-rw-rw-rw-  1 codespace root   178 Oct 16 07:23 .gitignore
+-rw-rw-rw-  1 codespace root  2943 Oct 16 07:23 CONTRIBUTING.md
+-rw-rw-rw-  1 codespace root 10270 Oct 16 07:23 README.md
+-rw-rw-rw-  1 codespace root  1441 Oct 16 07:39 TEAM.md
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 07:23 config
+drwxrwxrwx+ 3 codespace root  4096 Oct 16 07:23 data
+drwxrwxrwx+ 4 codespace root  4096 Oct 16 07:23 docs
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 08:50 evidence
+-rw-rw-rw-  1 codespace root   133 Oct 16 07:23 requirements.txt
+drwxrwxrwx+ 2 codespace root  4096 Oct 16 07:23 src
+
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ cd data
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07/data (enzo-ma) $ pwd && ls
+/workspaces/esilv-marketpulse-g06-t07/data
+sample
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07/data (enzo-ma) $ cd sample
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07/data/sample (enzo-ma) $ ls
+bloomberg_reference_expected.json  bloomberg_reference_sample.json  instruments.json  prices.csv
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07/data/sample (enzo-ma) $ cd ../..
+@enzo852 ➜ /workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ pwd
+/workspaces/esilv-marketpulse-g06-t07
