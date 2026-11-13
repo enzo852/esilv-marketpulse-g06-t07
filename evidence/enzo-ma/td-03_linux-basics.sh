@@ -76,7 +76,7 @@ touch td-03_linux-basics.sh
 # 2026-09-29,AAPL,264.50,266.50,263.30,265.00,44000000
 # 2026-09-30,AAPL,266.00,267.70,264.80,266.20,38000000
 
-g/workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ rep SP500 data/sample/prices.csv 
+g/workspaces/esilv-marketpulse-g06-t07 (enzo-ma) $ grep SP500 data/sample/prices.csv 
 # 2026-09-01,SP500,6592.00,6615.00,6580.00,6600.00,0
 # 2026-09-02,SP500,6607.00,6627.00,6595.00,6612.00,0
 # 2026-09-03,SP500,6596.00,6613.00,6584.00,6598.00,0
