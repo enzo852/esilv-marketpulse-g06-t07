@@ -11,6 +11,10 @@ from analytics import (
     calculate_base_100
 )
 
+from providers.yahoo_provider import (
+    fetch_yahoo_prices,
+    YAHOO_SYMBOL_MAPPING
+)
 
 DATA_DIR = Path("data/sample")
 
@@ -110,6 +114,42 @@ def main():
         f"{sp500_base_100[0]['value']:.1f} | "
         f"end: {sp500_base_100[-1]['value']:.2f}"
     )
+
+    #TD08
+
+    print("\n=== Interactive Acquisition and Normalization Test ===")
+
+    # Test acquisition for AAPL
+    symbol_aapl = YAHOO_SYMBOL_MAPPING["AAPL"]
+    aapl_canonical = fetch_yahoo_prices(symbol_aapl, canonical_ticker="AAPL", period="1mo", interval="1d")
+
+    print(f"Number of AAPL observations retrieved: {len(aapl_canonical)}")
+    print("First canonical observation sample:")
+    print(aapl_canonical[0])
+
+    # Test acquisition for S&P 500 (^GSPC)
+    symbol_sp500 = YAHOO_SYMBOL_MAPPING["SP500"]
+    sp500_canonical = fetch_yahoo_prices(symbol_sp500, canonical_ticker="SP500", period="1mo", interval="1d")
+
+    print(f"\nNumber of SP500 observations retrieved: {len(sp500_canonical)}")
+    print("First canonical observation sample:")
+    print(sp500_canonical[0])
+
+    print("\n=== Strict Type Verification on Canonical Rows ===")
+
+    sample_row = aapl_canonical[0]
+
+    assert isinstance(sample_row["date"], str), "Date must be a 'YYYY-MM-DD' formatted string"
+    assert isinstance(sample_row["ticker"], str), "Ticker must be a string"
+    assert isinstance(sample_row["open"], float), "Open price must be float"
+    assert isinstance(sample_row["high"], float), "High price must be float"
+    assert isinstance(sample_row["low"], float), "Low price must be float"
+    assert isinstance(sample_row["close"], float), "Close price must be float"
+    assert isinstance(sample_row["volume"], int), "Volume must be int"
+
+    print("✅ All field types strictly conform to the MarketPulse canonical contract!")
+
+
 
 
 if __name__ == "__main__":
