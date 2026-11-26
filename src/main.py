@@ -1,6 +1,15 @@
+
 from pathlib import Path
 import csv
 import json
+
+# Import functions from analytics.py
+from analytics import (
+    align_series,
+    calculate_period_return,
+    calculate_relative_performance,
+    calculate_base_100
+)
 
 
 DATA_DIR = Path("data/sample")
@@ -58,6 +67,49 @@ def main():
     print("Observations")
     print(f"{instrument['ticker']}: {len(instrument_prices)}")
     print(f"{benchmark['ticker']}: {len(benchmark_prices)}")
+
+    # ==========================================
+    # FUNCTION TESTS: Analytics
+    # ==========================================
+
+    print("\n=== FUNCTION TESTS ===")
+
+    # 1. Alignment
+    aligned_aapl, aligned_sp500 = align_series(
+        instrument_prices,
+        benchmark_prices
+    )
+
+    print(f"Common aligned dates    : {len(aligned_aapl)}")
+
+    # 2. Returns
+    aapl_return = calculate_period_return(aligned_aapl)
+    sp500_return = calculate_period_return(aligned_sp500)
+
+    rel_perf = calculate_relative_performance(
+        aapl_return,
+        sp500_return
+    )
+
+    print(f"AAPL period return      : {aapl_return:+.2f}%")
+    print(f"SP500 period return     : {sp500_return:+.2f}%")
+    print(f"Relative performance    : {rel_perf:+.2f} percentage points")
+
+    # 3. Base 100
+    aapl_base_100 = calculate_base_100(aligned_aapl)
+    sp500_base_100 = calculate_base_100(aligned_sp500)
+
+    print(
+        f"AAPL Base 100 start     : "
+        f"{aapl_base_100[0]['value']:.1f} | "
+        f"end: {aapl_base_100[-1]['value']:.2f}"
+    )
+
+    print(
+        f"SP500 Base 100 start    : "
+        f"{sp500_base_100[0]['value']:.1f} | "
+        f"end: {sp500_base_100[-1]['value']:.2f}"
+    )
 
 
 if __name__ == "__main__":
