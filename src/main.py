@@ -1,156 +1,222 @@
-
 from pathlib import Path
-import csv
 import json
 
-# Import functions from analytics.py
-from analytics import (
-    align_series,
-    calculate_period_return,
-    calculate_relative_performance,
-    calculate_base_100
-)
+if __package__:
+    # Cas 1 : import depuis la racine du projet (TD11)
+    from .analytics import (
+        align_series,
+        calculate_period_return,
+        calculate_relative_performance,
+        calculate_base_100
+    )
 
-from providers.yahoo_provider import (
-    fetch_yahoo_prices,
-    YAHOO_SYMBOL_MAPPING
-)
+    from .providers.bloomberg_provider import (
+        fetch_bloomberg_prices,
+        ACCESS_MODE
+    )
 
-DATA_DIR = Path("data/sample")
+else:
+    # Cas 2 : exécution directe de main.py
+    from analytics import (
+        align_series,
+        calculate_period_return,
+        calculate_relative_performance,
+        calculate_base_100
+    )
 
-# These starter values mirror config/settings.yml.
-# settings.yml is a human-readable configuration contract in the CORE.
-# Parsing YAML is optional and is not required by the 18-hour lab sequence.
+    from providers.bloomberg_provider import (
+        fetch_bloomberg_prices,
+        ACCESS_MODE
+    )
+
+# ============================================================
+# 1. APPLICATION SETTINGS
+# ============================================================
+
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "sample"
+
 LOOKBACK_LABEL = "1 month"
 INTERVAL_LABEL = "Daily"
 
+PROVIDER_NAME = "Bloomberg stage"
+
+
+# ============================================================
+# 2. LOAD INSTRUMENT INFORMATION
+# ============================================================
 
 def load_instruments():
     with open(DATA_DIR / "instruments.json", encoding="utf-8") as file:
         return json.load(file)
 
 
-def load_prices():
-    with open(DATA_DIR / "prices.csv", encoding="utf-8") as file:
-        return list(csv.DictReader(file))
+# ============================================================
+# 3. SHARED APPLICATION SNAPSHOT (TD10)
+# ============================================================
 
+def build_market_snapshot(
+    instrument_ticker="AAPL",
+    benchmark_ticker="SP500"
+):
+    """
+    Build the shared MarketPulse application snapshot.
 
-def filter_prices(prices, ticker):
-    return [row for row in prices if row["ticker"] == ticker]
+    This function retrieves Bloomberg canonical rows,
+    aligns the two series and reuses shared analytics.
 
+    Returns:
+        dict: Shared application result for terminal and dashboard.
+    """
 
-def main():
+    # 1. Load instrument metadata
     instruments = load_instruments()
-    prices = load_prices()
 
     instrument = instruments["instrument"]
     benchmark = instruments["benchmark"]
 
-    instrument_prices = filter_prices(prices, instrument["ticker"])
-    benchmark_prices = filter_prices(prices, benchmark["ticker"])
+    # 2. Retrieve Bloomberg canonical rows
+    instrument_prices = fetch_bloomberg_prices(
+        instrument_ticker,
+        mode=ACCESS_MODE
+    )
 
-    instrument_latest = instrument_prices[-1]
-    benchmark_latest = benchmark_prices[-1]
+    benchmark_prices = fetch_bloomberg_prices(
+        benchmark_ticker,
+        mode=ACCESS_MODE
+    )
 
-    print("=== MarketPulse ===")
-    print("Data source: Local CSV")
-    print()
-    print("Instrument")
-    print(f"{instrument['ticker']} - {instrument['name']}")
-    print(f"Last price: {instrument_latest['close']} {instrument['currency']}")
-    print(f"Market:{instrument['market']}")
-    print(f"Market: {benchmark['market']}")
-    print()
-    print("Benchmark")
-    print(f"{benchmark['ticker']} - {benchmark['name']}")
-    print(f"Last level: {benchmark_latest['close']}")
-    print()
-    print(f"Period: {LOOKBACK_LABEL}")
-    print(f"Interval: {INTERVAL_LABEL}")
-    print()
-    print("Observations")
-    print(f"{instrument['ticker']}: {len(instrument_prices)}")
-    print(f"{benchmark['ticker']}: {len(benchmark_prices)}")
+    # 3. Validate provider output
+    if not instrument_prices:
+        raise ValueError("Bloomberg returned no instrument observations.")
 
-    # ==========================================
-    # FUNCTION TESTS: Analytics
-    # ==========================================
+    if not benchmark_prices:
+        raise ValueError("Bloomberg returned no benchmark observations.")
 
-    print("\n=== FUNCTION TESTS ===")
-
-    # 1. Alignment
-    aligned_aapl, aligned_sp500 = align_series(
+    # 4. Align common dates (TD07)
+    aligned_instrument, aligned_benchmark = align_series(
         instrument_prices,
         benchmark_prices
     )
 
-    print(f"Common aligned dates    : {len(aligned_aapl)}")
+    if not aligned_instrument or not aligned_benchmark:
+        raise ValueError("No common dates between instrument and benchmark.")
 
-    # 2. Returns
-    aapl_return = calculate_period_return(aligned_aapl)
-    sp500_return = calculate_period_return(aligned_sp500)
-
-    rel_perf = calculate_relative_performance(
-        aapl_return,
-        sp500_return
+    # 5. Calculate period returns (TD07)
+    instrument_return = calculate_period_return(
+        aligned_instrument
     )
 
-    print(f"AAPL period return      : {aapl_return:+.2f}%")
-    print(f"SP500 period return     : {sp500_return:+.2f}%")
-    print(f"Relative performance    : {rel_perf:+.2f} percentage points")
+    benchmark_return = calculate_period_return(
+        aligned_benchmark
+    )
 
-    # 3. Base 100
-    aapl_base_100 = calculate_base_100(aligned_aapl)
-    sp500_base_100 = calculate_base_100(aligned_sp500)
+    # 6. Calculate relative performance (TD07)
+    relative_performance = calculate_relative_performance(
+        instrument_return,
+        benchmark_return
+    )
+
+    # 7. Calculate Base 100 (TD07)
+    instrument_base_100 = calculate_base_100(
+        aligned_instrument
+    )
+
+    benchmark_base_100 = calculate_base_100(
+        aligned_benchmark
+    )
+
+    # 8. Return shared application result
+    return {
+        "provider": PROVIDER_NAME,
+        "access_mode": ACCESS_MODE,
+        "lookback": LOOKBACK_LABEL,
+        "interval": INTERVAL_LABEL,
+        "instrument": {
+            **instrument,
+            "ticker": instrument_ticker,
+            "prices": aligned_instrument,
+        },
+        "benchmark": {
+            **benchmark,
+            "ticker": benchmark_ticker,
+            "prices": aligned_benchmark,
+        },
+        "instrument_return": instrument_return,
+        "benchmark_return": benchmark_return,
+        "relative_performance": relative_performance,
+        "instrument_base_100": instrument_base_100,
+        "benchmark_base_100": benchmark_base_100,
+    }
+
+
+# ============================================================
+# 4. TERMINAL PRESENTATION
+# ============================================================
+
+def main():
+
+    snapshot = build_market_snapshot()
+
+    instrument = snapshot["instrument"]
+    benchmark = snapshot["benchmark"]
+
+    instrument_prices = instrument["prices"]
+    benchmark_prices = benchmark["prices"]
+
+    print("=" * 50)
+    print("              MarketPulse")
+    print("=" * 50)
+
+    print("\nProvider")
+    print(snapshot["provider"])
+
+    print("\nAccess mode")
+    print(snapshot["access_mode"])
+
+    print("\nInstrument")
+    print(f"{instrument['ticker']} - {instrument['name']}")
+    print(f"Last price: {instrument_prices[-1]['close']}")
+
+    print("\nBenchmark")
+    print(f"{benchmark['ticker']} - {benchmark['name']}")
+    print(f"Last level: {benchmark_prices[-1]['close']}")
+
+    print("\nMarket context")
+    print(f"Period: {snapshot['lookback']}")
+    print(f"Interval: {snapshot['interval']}")
+
+    print("\nObservations")
+    print(f"Instrument: {len(instrument_prices)}")
+    print(f"Benchmark: {len(benchmark_prices)}")
+    print(f"Common dates: {len(instrument_prices)}")
+
+    print("\nPerformance")
+    print(f"Instrument return: {snapshot['instrument_return']:+.2f}%")
+    print(f"Benchmark return: {snapshot['benchmark_return']:+.2f}%")
+    print(
+        f"Relative performance: "
+        f"{snapshot['relative_performance']:+.2f} percentage points"
+    )
+
+    print("\nBase 100")
+    print(
+        f"Instrument: "
+        f"{snapshot['instrument_base_100'][0]['value']:.2f} "
+        f"-> {snapshot['instrument_base_100'][-1]['value']:.2f}"
+    )
 
     print(
-        f"AAPL Base 100 start     : "
-        f"{aapl_base_100[0]['value']:.1f} | "
-        f"end: {aapl_base_100[-1]['value']:.2f}"
+        f"Benchmark: "
+        f"{snapshot['benchmark_base_100'][0]['value']:.2f} "
+        f"-> {snapshot['benchmark_base_100'][-1]['value']:.2f}"
     )
 
-    print(
-        f"SP500 Base 100 start    : "
-        f"{sp500_base_100[0]['value']:.1f} | "
-        f"end: {sp500_base_100[-1]['value']:.2f}"
-    )
-
-    #TD08
-
-    print("\n=== Interactive Acquisition and Normalization Test ===")
-
-    # Test acquisition for AAPL
-    symbol_aapl = YAHOO_SYMBOL_MAPPING["AAPL"]
-    aapl_canonical = fetch_yahoo_prices(symbol_aapl, canonical_ticker="AAPL", period="1mo", interval="1d")
-
-    print(f"Number of AAPL observations retrieved: {len(aapl_canonical)}")
-    print("First canonical observation sample:")
-    print(aapl_canonical[0])
-
-    # Test acquisition for S&P 500 (^GSPC)
-    symbol_sp500 = YAHOO_SYMBOL_MAPPING["SP500"]
-    sp500_canonical = fetch_yahoo_prices(symbol_sp500, canonical_ticker="SP500", period="1mo", interval="1d")
-
-    print(f"\nNumber of SP500 observations retrieved: {len(sp500_canonical)}")
-    print("First canonical observation sample:")
-    print(sp500_canonical[0])
-
-    print("\n=== Strict Type Verification on Canonical Rows ===")
-
-    sample_row = aapl_canonical[0]
-
-    assert isinstance(sample_row["date"], str), "Date must be a 'YYYY-MM-DD' formatted string"
-    assert isinstance(sample_row["ticker"], str), "Ticker must be a string"
-    assert isinstance(sample_row["open"], float), "Open price must be float"
-    assert isinstance(sample_row["high"], float), "High price must be float"
-    assert isinstance(sample_row["low"], float), "Low price must be float"
-    assert isinstance(sample_row["close"], float), "Close price must be float"
-    assert isinstance(sample_row["volume"], int), "Volume must be int"
-
-    print("✅ All field types strictly conform to the MarketPulse canonical contract!")
+    print("\n" + "=" * 50)
 
 
-
+# ============================================================
+# 5. IMPORT-SAFE ENTRY POINT (TD11)
+# ============================================================
 
 if __name__ == "__main__":
     main()
